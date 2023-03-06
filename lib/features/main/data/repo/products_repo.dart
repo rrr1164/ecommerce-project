@@ -32,4 +32,7 @@ class ProductsRepo {
   List<Product> convertDynamicToProducts(List<dynamic> dynamicProducts) {
     return service.convertDynamicToProducts(dynamicProducts);
   }
+  Future<void> updateHistory(List<Product> products) async {
+    return await service.updateHistory(products);
+  }
 }

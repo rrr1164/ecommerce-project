@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import '../data/models/product.dart';
 
 class SingleCartItem extends StatelessWidget {
-  const SingleCartItem({
+  SingleCartItem({
     super.key,
     required this.product,
-    required this.repo
+    required this.repo,
+    required this.cartTotal
   });
-
+   int cartTotal = 0;
   final Product product;
   final ProductsRepo repo;
   @override
@@ -34,6 +35,8 @@ class SingleCartItem extends StatelessWidget {
           ),
           trailing:
               IconButton(icon: const Icon(Icons.cancel), onPressed: () {
+
+                cartTotal -= product.price;
                 repo.deleteProductFromCart(product);
               }),
         ),

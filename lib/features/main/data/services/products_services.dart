@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/product.dart';
 
@@ -62,25 +63,45 @@ class ProductsService {
     });
     return inCart;
   }
-  List<Product> convertDynamicToProducts(List<dynamic> dynamicProducts){
+
+  List<Product> convertDynamicToProducts(List<dynamic> dynamicProducts) {
     List<Product> products = [];
-    for(Map<String,dynamic> map in dynamicProducts){
+    for (Map<String, dynamic> map in dynamicProducts) {
       Product product = Product.fromJson(map);
       products.add(product);
     }
     return products;
   }
-  Future<void> deleteProductFromCart(Product product) async {
 
-    FirebaseFirestore.instance.collection("carts").doc(FirebaseAuth.instance.currentUser?.uid).update({
-      "cart":FieldValue.arrayRemove([product.toJson()]) });
+  Future<void> deleteProductFromCart(Product product) async {
+    FirebaseFirestore.instance
+        .collection("carts")
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .update({
+      "cart": FieldValue.arrayRemove([product.toJson()])
+    });
   }
+
   Future<void> deleteCart() async {
     final collection = FirebaseFirestore.instance.collection('carts');
     collection
-        .doc(FirebaseAuth.instance.currentUser?.uid) // <-- Doc ID to be deleted.
+        .doc(
+            FirebaseAuth.instance.currentUser?.uid) // <-- Doc ID to be deleted.
         .delete() // <-- Delete
         .then((_) => print('Deleted cart'))
         .catchError((error) => print('Delete failed: $error'));
+  }
+
+  Future<void> updateHistory(List<Product> products) async {
+    final cartsDocument = FirebaseFirestore.instance
+        .collection('history')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .collection("carts")
+        .doc(const Uuid().v4());
+    for (Product product in products) {
+      cartsDocument.set({
+        "cart": FieldValue.arrayUnion([product.toJson()]),
+      }, SetOptions(merge: true));
+    }
   }
 }

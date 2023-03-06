@@ -1,20 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ecommerc/core/utils/utilities.dart';
 import 'package:ecommerc/features/main/data/repo/products_repo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../data/models/product.dart';
-import '../widgets/singleCartItem.dart';
 
 class CartScreen extends StatefulWidget {
-  const CartScreen({Key? key, required this.repo}) : super(key: key);
-  final ProductsRepo repo;
+  const CartScreen(
+      {Key? key, required this.productsRepo})
+      : super(key: key);
+  final ProductsRepo productsRepo;
 
   @override
   State<CartScreen> createState() => _CartScreenState();
 }
 
 class _CartScreenState extends State<CartScreen> {
+  int cartTotal = 0;
+
+  List<Product> products = [];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,16 +28,6 @@ class _CartScreenState extends State<CartScreen> {
           child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
-            child: Text(
-              "My Cart",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
           Expanded(
             child: StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
@@ -42,34 +38,55 @@ class _CartScreenState extends State<CartScreen> {
                 if (snapshot.hasData && snapshot.data!.exists) {
                   final dynamicProducts = snapshot.data!['cart'];
                   if (dynamicProducts.isNotEmpty) {
-                    List<Product> products =
-                        widget.repo.convertDynamicToProducts(dynamicProducts);
+                    products = widget.productsRepo
+                        .convertDynamicToProducts(dynamicProducts);
+                    calculateTotal();
                     return Column(
                       children: [
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
+                          child: Text(
+                            "My Cart",
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
                         Expanded(
                           child: ListView.builder(
                             itemBuilder: (context, index) {
-                              return SingleCartItem(
-                                product: products[index],
-                                repo: widget.repo,
-                              );
+                              Product currentProduct = products[index];
+                              return singleProductItem(currentProduct);
                             },
                             itemCount: products.length,
                           ),
                         ),
+                        Text('Total: \$$cartTotal',
+                            style: const TextStyle(
+                              fontSize: 20,
+                            )),
+
                         Padding(
                           padding: const EdgeInsets.all(18.0),
-                          child: Container(
+                          child: SizedBox(
                             width: double.infinity,
                             height: 60,
                             child: ElevatedButton(
                               onPressed: () {
-                                widget.repo.deleteCart();
+                                widget.productsRepo.updateHistory(products);
+                                widget.productsRepo.deleteCart();
+                                Utilities.showSnackBar(
+                                    context, "Purchase Successful");
                               },
                               style: ButtonStyle(
                                   backgroundColor:
                                       MaterialStateProperty.all(Colors.black)),
-                              child: const Text("Purchase Items",style: TextStyle(fontSize: 18),),
+                              child: const Text(
+                                "Purchase Items",
+                                style: TextStyle(fontSize: 18),
+                              ),
                             ),
                           ),
                         )
@@ -88,6 +105,44 @@ class _CartScreenState extends State<CartScreen> {
       )),
     );
   }
+
+  Padding singleProductItem(Product currentProduct) {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Container(
+        decoration: BoxDecoration(
+            color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
+        child: ListTile(
+          leading: Image.network(
+            currentProduct.thumbnail,
+            height: 36,
+          ),
+          title: Text(
+            currentProduct.title,
+            style: const TextStyle(fontSize: 18),
+          ),
+          subtitle: Text(
+            '\$ ${currentProduct.price}',
+            style: const TextStyle(fontSize: 12),
+          ),
+          trailing: IconButton(
+              icon: const Icon(Icons.cancel),
+              onPressed: () {
+                widget.productsRepo.deleteProductFromCart(currentProduct);
+                cartTotal -= currentProduct.price;
+              }),
+        ),
+      ),
+    );
+  }
+
+  int calculateTotal() {
+    cartTotal = 0;
+    for (Product product in products) {
+      cartTotal += product.price;
+    }
+    return cartTotal;
+  }
 }
 
 class EmptyCart extends StatelessWidget {
@@ -100,7 +155,7 @@ class EmptyCart extends StatelessWidget {
     return const Center(
         child: Text(
       'Cart is Empty',
-      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+      style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600),
     ));
   }
 }

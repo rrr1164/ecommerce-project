@@ -23,10 +23,16 @@ class _SingleProductState extends State<SingleProduct> {
       added = await BlocProvider.of<ProductsCubit>(context)
           .repo
           .isProductInCart(widget.product);
-      setState(() {});
+      if(context.mounted) {
+        setState(() {});
+      }
     });
   }
-
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -55,7 +61,7 @@ class _SingleProductState extends State<SingleProduct> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(15), // Image border
                 child: SizedBox.fromSize(
-                  size: const Size.fromRadius(80), // Image radius
+                  size: const Size.fromRadius(93), // Image radius
                   child: Image.network(widget.product.thumbnail,
                       fit: BoxFit.cover),
                 ),
@@ -91,6 +97,7 @@ class _SingleProductState extends State<SingleProduct> {
               ),
               SizedBox(
                   width: double.infinity,
+                  height: 60,
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: ElevatedButton(

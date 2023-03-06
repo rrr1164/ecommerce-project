@@ -1,15 +1,13 @@
-import 'package:ecommerc/features/main/data/repo/products_repo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/assets.dart';
 import '../cubit/products/products_cubit.dart';
-import '../widgets/postsList.dart';
+import '../widgets/productsList.dart';
 import '../widgets/searchbar.dart';
 
 class HomeScreen extends StatefulWidget {
-
   const HomeScreen({super.key});
 
   @override
@@ -53,18 +51,13 @@ class _HomeScreenState extends State<HomeScreen> {
         controller: scrollController,
         child: Column(
           children: [
-             const Padding(padding: EdgeInsets.all(16.0), child: SearchBar()),
-            postsList(scrollController)
+            const Padding(padding: EdgeInsets.all(16.0), child: SearchBar()),
+            productsList(scrollController)
           ],
         ),
       ),
     );
   }
-
-
-
-
-
 }
 
 class CustomAppBar extends StatelessWidget {

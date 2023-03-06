@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:ecommerc/features/main/data/repo/products_repo.dart';
 import 'package:ecommerc/features/main/widgets/singleProduct.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,7 +8,7 @@ import '../cubit/products/products_cubit.dart';
 import '../cubit/products/products_state.dart';
 import '../data/models/product.dart';
 
-Widget postsList(ScrollController scrollController) {
+Widget productsList(ScrollController scrollController) {
   return BlocBuilder<ProductsCubit, ProductsState>(builder: (context, state) {
     if (state is ProductsLoading && state.isFirstFetch) {
       return _loadingIndicator();
@@ -25,12 +24,12 @@ Widget postsList(ScrollController scrollController) {
     return GridView.builder(
       itemBuilder: (context, index) {
         if (index < products.length) {
-          return SingleProduct(product:products[index]);
+          return SingleProduct(product: products[index]);
         } else {
           Timer(const Duration(milliseconds: 30), () {
             scrollController.jumpTo(scrollController.position.maxScrollExtent);
           });
-          return  _loadingIndicator();
+          return _loadingIndicator();
         }
       },
       itemCount: products.length + (isLoading ? 1 : 0),
@@ -45,6 +44,7 @@ Widget postsList(ScrollController scrollController) {
     );
   });
 }
+
 Widget _loadingIndicator() {
   return const Padding(
     padding: EdgeInsets.all(8),
